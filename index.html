@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Token Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-gray-200">
+
+    <div class="w-full max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-semibold tracking-tight text-gray-900 mb-2">Solana Token Scanner</h1>
+            <p class="text-gray-500 text-sm">Enter a contract address to check the price</p>
+        </div>
+
+        <!-- Search Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-6">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="address-input" 
+                        placeholder="Solana Contract Address" 
+                        class="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all placeholder-gray-400"
+                        autocomplete="off"
+                    >
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                </div>
+
+                <button 
+                    id="scan-btn"
+                    class="w-full mt-4 bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-lg text-sm transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <span>Scan Token</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Card (Hidden by default) -->
+        <div id="result-card" class="hidden mt-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden animate-fade-in-up">
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <div id="token-image-container" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-100">
+                            <span id="token-initial" class="text-xs font-medium text-gray-500">?</span>
+                            <img id="token-image" class="w-full h-full object-cover hidden" alt="Token">
+                        </div>
+                        <div>
+                            <h3 id="token-name" class="font-semibold text-gray-900 leading-tight">Token Name</h3>
+                            <p id="token-symbol" class="text-xs text-gray-500 font-medium">SYMBOL</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div id="token-price" class="text-xl font-semibold text-gray-900 tracking-tight">$0.00</div>
+                        <div id="price-change" class="text-xs font-medium flex items-center justify-end gap-1">
+                            0.00%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">Liquidity</p>
+                        <p id="token-liquidity" class="text-sm font-medium text-gray-700">$0</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1">Volume (24h)</p>
+                        <p id="token-volume" class="text-sm font-medium text-gray-700">$0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 flex justify-between items-center">
+                <span class="text-xs text-gray-400 font-mono" id="token-address-display">Address...</span>
+                <a id="dex-link" href="#" target="_blank" class="text-xs font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1 transition-colors">
+                    View on DexScreener
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Error Message (Hidden by default) -->
+        <div id="error-message" class="hidden mt-4 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg text-center">
+            Token not found or invalid address.
+        </div>
+
+    </div>
+
+    <div class="fixed bottom-6 text-xs text-gray-400 text-center">
+        Powered by DexScreener API
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
